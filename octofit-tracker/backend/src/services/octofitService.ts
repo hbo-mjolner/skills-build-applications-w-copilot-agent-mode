@@ -69,7 +69,7 @@ export async function getLeaderboard() {
     Team.find().select('name').lean(),
   ]);
   const teamNames = new Map(teams.map((team) => [team._id.toString(), team.name]));
-  const pointsByTeam = new Map<string, number>();
+  const pointsByTeam = new Map<string, number>(teams.map((team) => [team._id.toString(), 0]));
 
   for (const activity of activities) {
     const teamId = activity.team.toString();
