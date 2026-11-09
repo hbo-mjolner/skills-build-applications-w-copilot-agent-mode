@@ -52,10 +52,15 @@ export async function createTeam(input: unknown) {
     throw invalidInput();
   }
 
-  const existingMembers = await User.find({ _id: { $in: members } }).select('_id').lean();
+  const existingMembers = await User.find({ _id: { $in: members } }).select('_id team').lean();
   if (existingMembers.length !== members.length) throw invalidInput();
+  if (existingMembers.some((member) => member.team) || await Team.exists({ members: { $in: members } })) {
+    throw invalidInput();
+  }
 
-  return Team.create({ name: name.trim(), mascot: mascot.trim(), members });
+  const team = await Team.create({ name: name.trim(), mascot: mascot.trim(), members });
+  await User.updateMany({ _id: { $in: members } }, { $set: { team: team._id } });
+  return team;
 }
 
 export async function getLeaderboard() {
